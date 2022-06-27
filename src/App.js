@@ -33,12 +33,15 @@ function Controls({
       controls.setLookAt(
         state.camera.position.x,
         state.camera.position.y,
-        state.camera.position.z,
+        state.camera.position.z + 0.002,
         look.x,
         look.y,
         look.z,
         true
       );
+      // controls.dollyTo(
+      //   2 , true
+      // )
     }
     return controls.update(delta);
   });
@@ -59,10 +62,14 @@ function Cloud({ momentsData, zoomToView, setOrb }) {
     </mesh>
   ));
 }
-function Cacaboubou(setOrb, zoomToView) {
+function Cacaboubou({setOrb, zoomToView}) {
   return (
-    <mesh >
-      <boxGeometry args={[0.2, 0.2, 0.32]} />
+    <mesh       
+    onClick={(e) => {
+      setOrb(false);
+      zoomToView(e.object.position, console.log(e.object.position));
+    }}>
+      <boxGeometry args={[0.12, 0.12, 0.12]} />
       <meshStandardMaterial color={'hotpink'} />
     </mesh>
   );
@@ -96,8 +103,10 @@ export default function App() {
         momentsData={momentsArray}
         zoomToView={(focusRef) => (setZoom(+2), setFocus(focusRef))}
       />
-      <Cacaboubou />
-      <Controls orb={orb} setOrb={setOrb} zoom={zoom} focus={focus} />
+      <Cacaboubou 
+         setOrb={setOrb}
+         zoomToView={(focusRef) => (setZoom(+2), setFocus(focusRef))}/>
+      <Controls  orb={orb} setOrb={setOrb} zoom={zoom} focus={focus} />
     </Canvas>
   );
 }
