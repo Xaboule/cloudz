@@ -1,19 +1,17 @@
 import * as THREE from 'three';
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo} from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import randomColor from 'randomcolor';
 import CameraControls from 'camera-controls';
+import Ground from './Ground';
 import { OrbitControls } from '@react-three/drei';
 
 CameraControls.install({ THREE });
-
 // Setting onClick Controls
 function Controls({
   zoom,
   focus,
   pos = new THREE.Vector3(),
   look = new THREE.Vector3(),
-  vec2 = new THREE.Vector3(),
   orb,
   setOrb,
 }) {
@@ -24,10 +22,30 @@ function Controls({
     () => new CameraControls(camera, gl.domElement),
     [camera, gl.domElement]
   );
+  const bbHelper = new THREE.Mesh(
+    new THREE.BoxGeometry( 1, 1, 1 ),
+    new THREE.MeshBasicMaterial( { color: 0x00ff00, wireframe: true } )
+  );
+  bbHelper.visible = false;
+  const bb = new THREE.Box3(
+		new THREE.Vector3( -5.0, -5.0, -5.0 ),
+		new THREE.Vector3( 5.0, 5.0, 5.0 )
+	);
+	controls.setBoundary( bb );
+
+	bbHelper.position.set( 0, 0, 0 );
+	bbHelper.scale.set( 10, 10, 10 );
+	bbHelper.visible = true;
+
+
+  // useFrame(() => {
+  //   camera.position.x = THREE.MathUtils.clamp(camera.position.x, -90, 90)
+  //   camera.position.y = THREE.MathUtils.clamp(camera.position.y, -5, 90)
+  // })
   return useFrame((state, delta) => {
     if (!orb) {
-      zoom ? pos.set(focus.x, focus.y, focus.z + 0.2) : pos.set(0, 0, 5);
-      zoom ? look.set(focus.x, focus.y, focus.z - 0.2) : look.set(0, 0, 4); 
+      zoom ? pos.set(focus.x, focus.y, focus.z + 0.2) : pos.set(0, -4, 5);
+      zoom ? look.set(focus.x, focus.y, focus.z - 0.2) : look.set(0, -4, 4); 
       state.camera.position.lerp( pos,  0.15);
       state.camera.updateProjectionMatrix();
       // type of control
@@ -39,29 +57,36 @@ function Controls({
         look.y,
         look.z,
         true
-      );
-    }
+        );
+      }
+     controls.maxPolarAngle= 2;
+     controls.maxAzimuthAngle= 2;
+
+      // controls.maxZoom=2;
     return controls.update(delta);
   });
 }
 
-function Sphere ({sphere, position, setOrb, zoomToView}){
+function Sphere ({focus, sphere, position, setOrb, zoomToView}){
+  // position = position.set(focus.x, focus.y+2, focus.z + 0.2)
   return(
     <mesh   
     ref={sphere}     
     onClick={(e) => {
       setOrb(false);
-      zoomToView(e.object.position, console.log(e.object.position))
+      zoomToView(e.object.position, console.log(e.object.position)) 
     }}position={position}>
-      <sphereBufferGeometry args={[0.5,11,6]}/>
+      <sphereBufferGeometry args={[0.15,60, 60 ]}/>
       <meshStandardMaterial color={'green'}/>
     </mesh>
   );
 }
 
-function Cacaboubou({setOrb, zoomToView}) {
+function Cacaboubou({cac, position, setOrb, zoomToView}) {
   return (
-    <mesh       
+    <mesh  
+    ref={cac}
+    position={position}     
     onClick={(e) => {
       setOrb(false);
       zoomToView(e.object.position, console.log(e.object.position));
@@ -72,28 +97,33 @@ function Cacaboubou({setOrb, zoomToView}) {
   );
 }
 
-export default function App({sphere}) {
+export default function App({sphere, cac}) {
   const [orb, setOrb] = useState();
   const [zoom, setZoom] = useState(0);
   const [focus, setFocus] = useState({});
 
   return (
-    <Canvas linear camera={{fov: 75, near: 0.01, far: 100}}>
+    <Canvas linear camera={{fov: 70, near: 0.01, far: 100 }}>
       <OrbitControls
         onStart={(event) => {
           setOrb(true);
           console.log(event.target);
         }}
-        // onEnd={()=> {setOrb(false)}}
+        enablePan={false}
+// onEnd={()=> {setOrb(false)}}
       />
+  
+
       <ambientLight />
-      <directionalLight position={[150, 150, 150]} intensity={0.55} />
-        <Sphere ref={sphere} position={[2,2,0]} setOrb={setOrb}
+      {/* <directionalLight position={[150, 150, 150]} intensity={2}  color={'lightblue'} castShadow/> */}
+        <Sphere ref={sphere} position={[2,-2,0]} setOrb={setOrb}
          zoomToView={(focusRef) => (setZoom(+2), setFocus(focusRef))} />
-      <Cacaboubou 
+         <spotLight color={"lightblue"} instensity={3} penumbra={0.2}/>
+      <Cacaboubou     ref={cac} position={[0,-4,0]}
          setOrb={setOrb}
          zoomToView={(focusRef) => (setZoom(+2), setFocus(focusRef))}/>
-      <Controls  orb={orb} setOrb={setOrb} zoom={zoom} focus={focus} />
+         <Ground receiveShadow castShadow/>
+      <Controls   enablePan={false} orb={orb} zoom={zoom} focus={focus} />
     </Canvas>
   );
 }
