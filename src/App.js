@@ -22,20 +22,20 @@ function Controls({
     () => new CameraControls(camera, gl.domElement),
     [camera, gl.domElement]
   );
-  const bbHelper = new THREE.Mesh(
-    new THREE.BoxGeometry( 1, 1, 1 ),
-    new THREE.MeshBasicMaterial( { color: 0x00ff00, wireframe: true } )
-  );
-  bbHelper.visible = false;
-  const bb = new THREE.Box3(
-		new THREE.Vector3( -5.0, -5.0, -5.0 ),
-		new THREE.Vector3( 5.0, 5.0, 5.0 )
-	);
-	controls.setBoundary( bb );
+  // const bbHelper = new THREE.Mesh(
+  //   new THREE.BoxGeometry( 1, 1, 1 ),
+  //   new THREE.MeshBasicMaterial( { color: 0x00ff00, wireframe: true } )
+  // );
+  // bbHelper.visible = false;
+  // const bb = new THREE.Box3(
+	// 	new THREE.Vector3( -5.0, -5.0, -5.0 ),
+	// 	new THREE.Vector3( 5.0, 5.0, 5.0 )
+	// );
+	// controls.setBoundary( bb );
 
-	bbHelper.position.set( 0, 0, 0 );
-	bbHelper.scale.set( 10, 10, 10 );
-	bbHelper.visible = true;
+	// bbHelper.position.set( 0, 0, 0 );
+	// bbHelper.scale.set( 10, 10, 10 );
+	// bbHelper.visible = true;
 
 
   // useFrame(() => {
@@ -44,8 +44,8 @@ function Controls({
   // })
   return useFrame((state, delta) => {
     if (!orb) {
-      zoom ? pos.set(focus.x, focus.y, focus.z + 0.2) : pos.set(0, -4, 5);
-      zoom ? look.set(focus.x, focus.y, focus.z - 0.2) : look.set(0, -4, 4); 
+      zoom ? pos.set(focus.x, focus.y, focus.z + 4) : pos.set(0, 0, 5);
+      zoom ? look.set(focus.x, focus.y, focus.z - 4) : look.set(0, 0, 4); 
       state.camera.position.lerp( pos,  0.15);
       state.camera.updateProjectionMatrix();
       // type of control
@@ -59,8 +59,9 @@ function Controls({
         true
         );
       }
-     controls.maxPolarAngle= 2;
-     controls.maxAzimuthAngle= 2;
+     controls.maxPolarAngle= 1.49;
+     controls.maxDistance = 20;
+    //  controls.maxAzimuthAngle= 2;
 
       // controls.maxZoom=2;
     return controls.update(delta);
@@ -91,7 +92,7 @@ function Cacaboubou({cac, position, setOrb, zoomToView}) {
       setOrb(false);
       zoomToView(e.object.position, console.log(e.object.position));
     }}>
-      <boxGeometry args={[0.12, 0.12, 0.12]} />
+      <boxGeometry args={[2, 2, 2]} />
       <meshStandardMaterial color={'hotpink'} />
     </mesh>
   );
@@ -109,19 +110,21 @@ export default function App({sphere, cac}) {
           setOrb(true);
           console.log(event.target);
         }}
-        enablePan={false}
+        // enablePan={false}
+      maxPolarAngle={1.49}
+      minDistance={5} maxDistance={20} makeDefault 
 // onEnd={()=> {setOrb(false)}}
       />
   
 
       <ambientLight />
       {/* <directionalLight position={[150, 150, 150]} intensity={2}  color={'lightblue'} castShadow/> */}
-        <Sphere ref={sphere} position={[2,-2,0]} setOrb={setOrb}
+        <Sphere ref={sphere} position={[2,0.1,0]} setOrb={setOrb}
          zoomToView={(focusRef) => (setZoom(+2), setFocus(focusRef))} />
          <spotLight color={"lightblue"} instensity={3} penumbra={0.2}/>
-      <Cacaboubou     ref={cac} position={[0,-4,0]}
+      <Cacaboubou     ref={cac} position={[0,1,0]}
          setOrb={setOrb}
-         zoomToView={(focusRef) => (setZoom(+2), setFocus(focusRef))}/>
+         zoomToView={(focusRef) => (setZoom(-2), setFocus(focusRef))}/>
          <Ground receiveShadow castShadow/>
       <Controls   enablePan={false} orb={orb} zoom={zoom} focus={focus} />
     </Canvas>
