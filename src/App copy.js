@@ -1,13 +1,13 @@
 import * as THREE from 'three';
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import randomColor from 'randomcolor';
 import CameraControls from 'camera-controls';
 import { OrbitControls } from '@react-three/drei';
 
 CameraControls.install({ THREE });
+const randomPos = (min = 2, max = -2) => Math.random() * (max - min) + min;
 
-// Setting onClick Controls
 function Controls({
   zoom,
   focus,
@@ -17,7 +17,6 @@ function Controls({
   orb,
   setOrb,
 }) {
-  // innit new camera for useMemo
   const camera = useThree((state) => state.camera);
   const gl = useThree((state) => state.gl);
   const controls = useMemo(
@@ -30,7 +29,7 @@ function Controls({
       zoom ? look.set(focus.x, focus.y, focus.z - 0.2) : look.set(0, 0, 4); 
       state.camera.position.lerp( pos,  0.15);
       state.camera.updateProjectionMatrix();
-      // type of control
+
       controls.setLookAt(
         state.camera.position.x,
         state.camera.position.y,
@@ -40,25 +39,29 @@ function Controls({
         look.z,
         true
       );
+      // controls.dollyTo(
+      //   2 , true
+      // )
     }
     return controls.update(delta);
   });
 }
 
-function Sphere ({sphere, position, setOrb, zoomToView}){
-  return(
-    <mesh   
-    ref={sphere}     
-    onClick={(e) => {
-      setOrb(false);
-      zoomToView(e.object.position, console.log(e.object.position))
-    }}position={position}>
-      <sphereBufferGeometry args={[0.5,11,6]}/>
-      <meshStandardMaterial color={'green'}/>
+function Cloud({ momentsData, zoomToView, setOrb }) {
+  return momentsData.map(({ position, color }, i) => (
+    <mesh
+      key={i}
+      position={position}
+      onClick={(e) => {
+        setOrb(false);
+        zoomToView(e.object.position, console.log(e.object.position));
+      }}
+    >
+      <boxGeometry args={[0.1, 0.08, 0.03]} />
+      <meshStandardMaterial color={color} />
     </mesh>
-  );
+  ));
 }
-
 function Cacaboubou({setOrb, zoomToView}) {
   return (
     <mesh       
@@ -72,11 +75,18 @@ function Cacaboubou({setOrb, zoomToView}) {
   );
 }
 
-export default function App({sphere}) {
+export default function App() {
   const [orb, setOrb] = useState();
   const [zoom, setZoom] = useState(0);
   const [focus, setFocus] = useState({});
-
+  // const momentsArray = useMemo(
+  //   () =>
+  //     Array.from({ length: 50 }, () => ({
+  //       color: randomColor(),
+  //       position: [randomPos(), randomPos(), randomPos()],
+  //     })),
+  //   []
+  // );
   return (
     <Canvas linear camera={{fov: 75, near: 0.01, far: 100}}>
       <OrbitControls
@@ -88,8 +98,11 @@ export default function App({sphere}) {
       />
       <ambientLight />
       <directionalLight position={[150, 150, 150]} intensity={0.55} />
-        <Sphere ref={sphere} position={[2,2,0]} setOrb={setOrb}
-         zoomToView={(focusRef) => (setZoom(+2), setFocus(focusRef))} />
+      {/* <Cloud
+        setOrb={setOrb}
+        momentsData={momentsArray}
+        zoomToView={(focusRef) => (setZoom(+2), setFocus(focusRef))}
+      /> */}
       <Cacaboubou 
          setOrb={setOrb}
          zoomToView={(focusRef) => (setZoom(+2), setFocus(focusRef))}/>
